@@ -1,0 +1,100 @@
+const fetch = require('node-fetch');
+const EmailSender = require('./mail-sender');
+const jest = require('jest');
+
+// Mocking the fetch function
+jest.mock('node-fetch');
+
+describe('EmailSender', () => {
+  // Create an instance of EmailSender with your Mailtrap API token and API URL
+  const apiUrl = 'https://sandbox.api.mailtrap.io/api/send/2303584';
+  const apiToken = '61c6b731a0ac418f4936ea078e36ba00';
+
+  describe('send', () => {
+    it('should send email with correct payload and return response', async () => {
+      const senderName = 'John Doe';
+      const senderEmail = 'john@example.com';
+      const recipientName = 'Jane Smith';
+      const recipientEmail = 'jane@example.com';
+      const subject = 'Hello!';
+      const text = 'This is the text content of the email.';
+      const html = '<p>This is the HTML content of the email.</p>';
+      const attachments = [];
+
+      const expectedPayload = {
+        from: {
+          name: senderName,
+          email: senderEmail
+        },
+        to: [
+            {
+            name: recipientName,
+            email: recipientEmail
+            },
+        ],
+        subject,
+        text,
+        html,
+        attachments
+      };
+
+      const expectedResponse = {
+        success: true,
+        message: 'Email sent successfully.'
+      };
+
+      // Mocking the fetch response
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(expectedResponse)
+      });
+
+      const emailSender = new EmailSender(apiToken, apiUrl);
+      const response = await emailSender.send(
+        senderName,
+        senderEmail,
+        recipientName,
+        recipientEmail,
+        subject,
+        text,
+        html,
+        attachments
+      );
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Token': apiToken
+        },
+        body: JSON.stringify(expectedPayload)
+      });
+      expect(response).toEqual(expectedResponse);
+    });
+
+    it('should throw an error if the response is not ok', async () => {
+      // Mocking a failed fetch response
+      fetch.mockResolvedValueOnce({
+        ok: false
+      });
+
+      const emailSender = new EmailSender(apiToken, apiUrl);
+
+      await expect(() =>
+        emailSender.send(
+          'John Doe',
+          'john@example.com',
+          'Jane Smith',
+          'jane@example.com',
+          'Hello!',
+          'This is the text content of the email.',
+          '<p>This is the HTML content of the email.</p>',
+          []
+        )
+      ).rejects.toThrow('Failed to send email.');
+
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+});

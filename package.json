@@ -1,0 +1,21 @@
+{
+  "name": "email-sender-lib",
+  "version": "1.0.0",
+  "description": "email sender lib by using mailtrap api",
+  "scripts": {
+    "start": "node src/app.js",
+    "lint": "eslint .",
+    "dev": "nodemon --inspect app.js",
+    "test": "jest"
+  },
+  "author": "Lalit Rajput <llmsjraj@gmail.com>",
+  "dependencies": {
+    "node-fetch": "^2.6.12"
+  },
+  "devDependencies": {
+    "eslint": "^8.44.0",
+    "jest": "^29.5.0",
+    "nodemon": "^2.0.22"
+  },
+  "license": "ISC"
+}
